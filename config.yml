@@ -1,0 +1,42 @@
+#
+#     oooooooooo.     .oooooo.            ooooo                   .o8
+#     `888'   `Y8b   d8P'  `Y8b           `888'                  "888
+#      888      888 888                    888          .oooo.    888oooo.
+#      888      888 888                    888         `P  )88b   d88' `88b
+#      888      888 888     ooooo 8888888  888          .oP"888   888   888
+#      888     d88' `88.    .88'           888       o d8(  888   888   888
+#     o888bood8P'    `Y8bood8P'           o888ooooood8 `Y888""8o  `Y8bod8P'
+#
+#                                我电死你™实验室（？）
+
+# DG-Spigot 配置文件
+# Author: huzpsb（是大S，所以非常喜欢电群友玩）
+
+# 服务器地址
+# 常见选择：
+# 官方 - wss://ws.dungeon-lab.cn/  [不怎么稳定]
+# BF - wss://coyote.babyfang.cn/  [不一定安全]
+# 自建 - 自己的服务器地址             [你得会才行]
+server: "wss://coyote.babyfang.cn/"
+
+# 未连接郊狼时的处理
+# 可选项：
+# NONE   - 不处理，适用于除了几个超级大M外都没有狼的服务器
+# FREEZE - 不能移动，适用于全都有狼的服务器
+# DOUBLE - 受到的伤害翻倍，适合于一半有狼一半没有的服务器
+punishment: "FREEZE"
+
+# 信道强度
+# 如果设置软上限低于这个强度会直接认为连接失败
+A: 100
+B: 50
+
+# 鼠标交互时电击时长（秒）
+# 0为不电击；强度为上述强度的1/2。
+shock_interact: 1
+
+# 受伤时电击时长（秒）
+# 0为不电击
+shock_duration: 5
+
+# 同步略有延迟，不可避免，我真的尽力了

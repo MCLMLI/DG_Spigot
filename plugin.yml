@@ -1,0 +1,12 @@
+name: DG_Spigot
+version: 1.0.0
+api-version: 1.13
+main: dg.spigot.SpigotMain
+commands:
+  dgmap:
+    description: Get the DG Map
+    usage: /<command>
+permissions:
+  dgmap.use:
+    description: Allows the use of the DG Map command
+    default: true
