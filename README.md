@@ -48,4 +48,9 @@ shock_duration: 5
 
 ```
 
+截图预览：  
+游戏内二维码绑定（使用官方socket控制协议）  
+<img width="331" alt="image" src="https://github.com/user-attachments/assets/1c07ea0b-9f0c-465a-88c7-34e8c43eb1b7" />
+
+
 源码 呃 看得懂就看 看不懂就去 https://github.com/huzpsb/DG_Spigot/releases 下载成品即可。
