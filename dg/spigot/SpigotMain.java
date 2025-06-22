@@ -1,10 +1,11 @@
 package dg.spigot;
 
 import dg.DGSession;
-import dg.DGSharedPool;
 import dg.enums.DGChannel;
 import dg.enums.DGState;
-import nano.http.d2.qr.QrCode;
+import dg.spigot.command.MapCommand;
+import dg.spigot.command.SicCommand;
+import dg.spigot.command.WavCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -23,25 +24,22 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.map.MapCanvas;
-import org.bukkit.map.MapRenderer;
-import org.bukkit.map.MapView;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class SpigotMain extends JavaPlugin implements Listener {
-    private static final String itemName = "郊狼绑定二维码";
+    public static final String itemName = "郊狼绑定二维码";
 
     private static boolean freeze = false;
     private static boolean multiply = false;
-    private static int a = 0;
-    private static int b = 0;
+    public static int a = 0;
+    public static int b = 0;
     private static int punishInteract = 0;
     private static int punishHurt = 0;
 
-    private void clearMaps(Player p) {
+    public static void clearMaps(Player p) {
         for (int i = 0; i < p.getInventory().getSize(); i++) {
             ItemStack item = p.getInventory().getItem(i);
             if (item != null && item.getType() == Material.FILLED_MAP) {
@@ -112,7 +110,7 @@ public class SpigotMain extends JavaPlugin implements Listener {
     }
 
 
-    private static final Map<String, DGSession> sessions = new HashMap<>();
+    public static final Map<String, DGSession> sessions = new HashMap<>();
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
@@ -179,69 +177,19 @@ public class SpigotMain extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("dgmap.use")) {
-            sender.sendMessage("你缺少使用此命令的权限。");
-            return true;
+        switch (label.toLowerCase()) {
+            case "dgmap":
+                MapCommand.handle(sender);
+                break;
+            case "sic":
+                SicCommand.handle(sender, args);
+                break;
+            case "wav":
+                WavCommand.handle(sender, args);
+                break;
+            default:
+                throw new IllegalStateException();
         }
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("仅限玩家执行此命令。");
-            return true;
-        }
-        final Player player = (Player) sender;
-        if (player.getInventory().getItemInMainHand().getType() != Material.AIR) {
-            if (player.getInventory().getItemInMainHand().getType() != Material.FILLED_MAP) {
-                player.sendMessage("请先将主手物品放下再使用此命令。");
-                return true;
-            }
-        }
-
-        DGSession session = sessions.computeIfAbsent(player.getName(), k -> {
-            DGSession dgs = new DGSession(a, b);
-            DGSharedPool.executorService.submit(() -> {
-                dgs.awaitState(DGState.PLAYING);
-                if (dgs.getState() == DGState.PLAYING) {
-                    player.sendMessage("连接成功辽！好好享受吧欸嘿嘿嘿~");
-                    clearMaps(player);
-                }
-                dgs.awaitState(DGState.CLOSED);
-                sessions.remove(player.getName());
-                player.sendMessage("连接断开辽...可能是因为强度设置低于服主设置的阈值，或者是网络问题？");
-            });
-            return dgs;
-        });
-        if (session.getState() == DGState.WAITING_SERVER) {
-            session.awaitState(DGState.WAITING_CLIENT);
-        }
-        if (session.getState() != DGState.WAITING_CLIENT) {
-            player.sendMessage("连接失败，可能是已经连接过设备，或者网络错误？");
-            return true;
-        }
-        QrCode qrCode = session.getQrCode();
-        int dist = 32 - qrCode.size / 2;
-        ItemStack map = new ItemStack(Material.FILLED_MAP, 1);
-        MapMeta meta = (MapMeta) map.getItemMeta();
-        MapView view = Bukkit.createMap(Bukkit.getWorlds().get(0));
-        view.setScale(MapView.Scale.CLOSEST);
-        view.getRenderers().clear();
-        view.addRenderer(new MapRenderer() {
-            public void render(MapView mapView, MapCanvas mapCanvas, Player player) {
-                for (int _x = 0; _x < 128; _x++) {
-                    for (int _y = 0; _y < 128; _y++) {
-                        int x = _x / 2;
-                        int y = _y / 2;
-                        if (x >= dist && x < qrCode.size + dist && y >= dist && y < qrCode.size + dist && qrCode.getModule(x - dist, y - dist)) {
-                            mapCanvas.setPixel(_x, _y, (byte) 89); // Set foreground to black
-                        } else {
-                            mapCanvas.setPixel(_x, _y, (byte) 34); // Set background to white
-                        }
-                    }
-                }
-            }
-        });
-        meta.setMapView(view);
-        meta.setDisplayName(itemName);
-        map.setItemMeta(meta);
-        player.getInventory().setItemInMainHand(map);
         return true;
     }
 }

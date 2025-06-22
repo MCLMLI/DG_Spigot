@@ -1,3 +1,13 @@
+郊狼 x Spigot
+---
+
+Spigot与郊狼联动。支持VR，专为多人设计，拥有JavaAPI，直接当插件用、当库用都很方便。
+
+版本需求：1.15+. Spigot或其分支。
+
+## 配置文件预览：
+
+```yaml
 #
 #     oooooooooo.     .oooooo.            ooooo                   .o8
 #     `888'   `Y8b   d8P'  `Y8b           `888'                  "888
@@ -19,7 +29,7 @@
 # 自建 - 自己的服务器地址             [你得会才行]
 server: "wss://coyote.babyfang.cn/"
 
-# 未连接郊狼时的处理c
+# 未连接郊狼时的处理
 # 可选项：
 # NONE   - 不处理，适用于除了几个超级大M外都没有狼的服务器
 # FREEZE - 不能移动，适用于全都有狼的服务器
@@ -40,3 +50,40 @@ shock_interact: 1
 shock_duration: 5
 
 # 同步略有延迟，不可避免，我真的尽力了
+
+```
+
+## 截图预览：
+
+游戏内二维码绑定（使用官方socket控制协议）  
+<img width="331" alt="image" src="https://github.com/user-attachments/assets/1c07ea0b-9f0c-465a-88c7-34e8c43eb1b7" />
+
+## 成品下载
+
+https://github.com/huzpsb/DG_Spigot/releases
+
+## 指令与配置
+
+### dgmap
+
+权限 `dgmap.use` （默认：真）  
+参数 无  
+功能 玩家主动使用，打开绑定设备的二维码
+
+### sic
+
+权限 `sic.use` （默认：仅OP）  
+参数 对象玩家 执行指令
+功能 如果对象玩家连接了设备，则令其以临时op的权限执行指令  
+例如 sic huzpsb give huzpsb diamond 64  
+解释 如果 huzpsb 连接了设备，则给与huzpsb 64个钻石；否则无操作
+
+### wav
+
+权限 `wav.use` （默认：仅OP）  
+参数 对象玩家 通道A强度 通道B强度 持续时间  
+功能 发送指定的波形到玩家设备；并覆盖上一次的波形（无论原因）。
+
+## JavaAPI
+
+请查阅dg.spigot.api.SpigotAPI

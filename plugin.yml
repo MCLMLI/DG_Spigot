@@ -6,7 +6,19 @@ commands:
   dgmap:
     description: Get the DG Map
     usage: /<command>
+  sic:
+    description: Make a player dispatch a command as op if they have DG connected
+    usage: /<command> <target> <args...>
+  wav:
+    description: Play a wave to a player
+    usage: /<command> <player> <a> <b> <duration>
 permissions:
   dgmap.use:
     description: Allows the use of the DG Map command
     default: true
+  sic.use:
+    description: Allows the use of the sudo if connected command
+    default: op
+  wav.use:
+    description: Allows the use of the wave command
+    default: op
