@@ -3,11 +3,11 @@ package dg.spigot;
 import dg.DGSession;
 import dg.enums.DGChannel;
 import dg.enums.DGState;
+import dg.reflect.ReflectUtils;
 import dg.spigot.command.MapCommand;
 import dg.spigot.command.SicCommand;
 import dg.spigot.command.WavCommand;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -38,11 +38,12 @@ public class SpigotMain extends JavaPlugin implements Listener {
     public static int b = 0;
     private static int punishInteract = 0;
     private static int punishHurt = 0;
+    private static int punishDie = 0;
 
     public static void clearMaps(Player p) {
         for (int i = 0; i < p.getInventory().getSize(); i++) {
             ItemStack item = p.getInventory().getItem(i);
-            if (item != null && item.getType() == Material.FILLED_MAP) {
+            if (item != null && item.getType() == ReflectUtils.mapMaterial) {
                 MapMeta meta = (MapMeta) item.getItemMeta();
                 if (meta != null && itemName.equals(meta.getDisplayName())) {
                     p.getInventory().setItem(i, null);
@@ -75,7 +76,12 @@ public class SpigotMain extends JavaPlugin implements Listener {
         Player player = (Player) entity;
         DGSession session = sessions.get(player.getName());
         if (session != null && session.getState() == DGState.PLAYING) {
-            if (punishHurt != 0) {
+            if (punishDie != 0 && event.getCause() != EntityDamageEvent.DamageCause.VOID && event.getDamage() > 0.6 + player.getHealth()) {
+                event.setCancelled(true);
+                session.sendStrength(a, DGChannel.A);
+                session.sendStrength(b, DGChannel.B);
+                session.sendWave(punishDie, DGChannel.BOTH);
+            } else if (punishHurt != 0) {
                 session.sendStrength(a, DGChannel.A);
                 session.sendStrength(b, DGChannel.B);
                 session.sendWave(punishHurt, DGChannel.BOTH);
@@ -129,7 +135,7 @@ public class SpigotMain extends JavaPlugin implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         ItemStack item = event.getCurrentItem();
-        if (item != null && item.getType() == Material.FILLED_MAP) {
+        if (item != null && item.getType() == ReflectUtils.mapMaterial) {
             MapMeta meta = (MapMeta) item.getItemMeta();
             if (meta != null && itemName.equals(meta.getDisplayName())) {
                 event.setCancelled(true);
@@ -141,7 +147,7 @@ public class SpigotMain extends JavaPlugin implements Listener {
     @EventHandler
     public void onDrop(ItemSpawnEvent event) {
         ItemStack item = event.getEntity().getItemStack();
-        if (item.getType() == Material.FILLED_MAP) {
+        if (item.getType() == ReflectUtils.mapMaterial) {
             MapMeta meta = (MapMeta) item.getItemMeta();
             if (meta != null && itemName.equals(meta.getDisplayName())) {
                 event.setCancelled(true);
@@ -172,6 +178,7 @@ public class SpigotMain extends JavaPlugin implements Listener {
         }
         punishInteract = getConfig().getInt("shock_interact", 0);
         punishHurt = getConfig().getInt("shock_duration", 0);
+        punishDie = getConfig().getInt("die_duration", 0);
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 

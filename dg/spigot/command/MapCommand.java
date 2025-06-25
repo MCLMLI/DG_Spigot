@@ -3,6 +3,7 @@ package dg.spigot.command;
 import dg.DGSession;
 import dg.DGSharedPool;
 import dg.enums.DGState;
+import dg.reflect.ReflectUtils;
 import dg.spigot.SpigotMain;
 import nano.http.d2.qr.QrCode;
 import org.bukkit.Bukkit;
@@ -26,8 +27,8 @@ public class MapCommand {
             return;
         }
         final Player player = (Player) sender;
-        if (player.getInventory().getItemInMainHand().getType() != Material.AIR) {
-            if (player.getInventory().getItemInMainHand().getType() != Material.FILLED_MAP) {
+        if (player.getInventory().getItemInHand().getType() != Material.AIR) {
+            if (player.getInventory().getItemInHand().getType() != ReflectUtils.mapMaterial) {
                 player.sendMessage("请先将主手物品放下再使用此命令。");
                 return;
             }
@@ -56,7 +57,10 @@ public class MapCommand {
         }
         QrCode qrCode = session.getQrCode();
         int dist = 32 - qrCode.size / 2;
-        ItemStack map = new ItemStack(Material.FILLED_MAP, 1);
+
+        ItemStack map = new ItemStack(ReflectUtils.mapMaterial, 1);
+
+
         MapMeta meta = (MapMeta) map.getItemMeta();
         MapView view = Bukkit.createMap(Bukkit.getWorlds().get(0));
         view.setScale(MapView.Scale.CLOSEST);
@@ -76,9 +80,13 @@ public class MapCommand {
                 }
             }
         });
-        meta.setMapView(view);
+
+
+        ReflectUtils.processMapView1(meta, view);
         meta.setDisplayName(SpigotMain.itemName);
         map.setItemMeta(meta);
-        player.getInventory().setItemInMainHand(map);
+        ReflectUtils.processMapView2(map, view);
+
+        player.getInventory().setItemInHand(map);
     }
 }
