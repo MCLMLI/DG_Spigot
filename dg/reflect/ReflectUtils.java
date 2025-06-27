@@ -35,6 +35,7 @@ public class ReflectUtils {
         if (!isLegacy) {
             try {
                 setMapView = new ItemStack(mapMaterial, 1).getItemMeta().getClass().getMethod("setMapView", MapView.class);
+                setMapView.setAccessible(true);
             } catch (Exception e) {
                 throw new IllegalStateException("Failed to find setMapView method: " + e.getMessage(), e);
             }
@@ -59,6 +60,7 @@ public class ReflectUtils {
         if (isLegacy) {
             try {
                 getId = Bukkit.createMap(Bukkit.getWorlds().get(0)).getClass().getMethod("getId");
+                getId.setAccessible(true);
             } catch (Exception e) {
                 throw new IllegalStateException("Failed to find getId method: " + e.getMessage(), e);
             }
@@ -76,6 +78,4 @@ public class ReflectUtils {
             }
         }
     }
-
-
 }
