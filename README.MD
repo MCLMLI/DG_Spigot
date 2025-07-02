@@ -77,7 +77,7 @@ https://github.com/huzpsb/DG_Spigot/releases
 ### sic
 
 权限 `sic.use` （默认：仅OP）  
-参数 对象玩家 执行指令
+参数 对象玩家 执行指令  
 功能 如果对象玩家连接了设备，则令其以临时op的权限执行指令  
 例如 sic huzpsb give huzpsb diamond 64  
 解释 如果 huzpsb 连接了设备，则给与huzpsb 64个钻石；否则无操作
