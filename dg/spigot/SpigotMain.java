@@ -78,10 +78,17 @@ public class SpigotMain extends JavaPlugin implements Listener {
         if (session != null && session.getState() == DGState.PLAYING) {
             if (punishDie != 0 && event.getCause() != EntityDamageEvent.DamageCause.VOID && event.getDamage() > 0.6 + player.getHealth()) {
                 event.setCancelled(true);
+                player.setHealth(1);
+                if (session.getStrengthA() == a && session.getStrengthB() == b && session.getExpectedEndTime() >= punishDie - 1) {
+                    return;
+                }
                 session.sendStrength(a, DGChannel.A);
                 session.sendStrength(b, DGChannel.B);
                 session.sendWave(punishDie, DGChannel.BOTH);
             } else if (punishHurt != 0) {
+                if (session.getStrengthA() == a && session.getStrengthB() == b && session.getExpectedEndTime() >= punishHurt - 1) {
+                    return;
+                }
                 session.sendStrength(a, DGChannel.A);
                 session.sendStrength(b, DGChannel.B);
                 session.sendWave(punishHurt, DGChannel.BOTH);

@@ -25,6 +25,11 @@ public class DGSession implements Runnable {
     private boolean fin = false;
     private int strengthA = 0;
     private int strengthB = 0;
+    private long expectedEndTime = 0;
+
+    public int getExpectedEndTime() {
+        return ((int) ((System.currentTimeMillis() - expectedEndTime) / 1000)) + 1;
+    }
 
     public int getStrengthA() {
         return strengthA;
@@ -125,6 +130,7 @@ public class DGSession implements Runnable {
             throw new IllegalArgumentException("Wave duration must be positive: " + duration);
         }
         fin = false;
+        expectedEndTime = System.currentTimeMillis() + (duration * 1000L);
 
         NanoJSON message = new NanoJSON();
         message.put("type", "clientMsg");
