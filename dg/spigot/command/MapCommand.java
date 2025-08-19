@@ -35,7 +35,7 @@ public class MapCommand {
             return;
         }
         final Player player = (Player) sender;
-        String playerName = player.getName();
+        final String playerName = player.getName();
         if (!processingPlayers.add(playerName)) {
             player.sendMessage("上一次二维码生成还未完成，请稍后再试。");
             return;
@@ -47,36 +47,48 @@ public class MapCommand {
                 return;
             }
         }
-        // Async processing
+        // Async processing for blocking logic
         DGSharedPool.executorService.submit(() -> {
+            ExecutorService singleExec = Executors.newSingleThreadExecutor();
             Future<?> future = null;
             try {
-                // Submit the real task and wait for result/timeout.
-                Callable<Void> task = () -> {
-                    try {
-                        DGSession session = SpigotMain.sessions.computeIfAbsent(playerName, k -> {
-                            DGSession dgs = new DGSession(SpigotMain.a, SpigotMain.b);
-                            DGSharedPool.executorService.submit(() -> {
-                                dgs.awaitState(DGState.PLAYING);
-                                if (dgs.getState() == DGState.PLAYING) {
+                Callable<QrCode> task = () -> {
+                    DGSession session = SpigotMain.sessions.computeIfAbsent(playerName, k -> {
+                        DGSession dgs = new DGSession(SpigotMain.a, SpigotMain.b);
+                        DGSharedPool.executorService.submit(() -> {
+                            dgs.awaitState(DGState.PLAYING);
+                            if (dgs.getState() == DGState.PLAYING) {
+                                Bukkit.getScheduler().runTask(SpigotMain.instance, () -> {
                                     player.sendMessage("连接成功辽！好好享受吧欸嘿嘿嘿~");
                                     SpigotMain.clearMaps(player);
-                                }
-                                dgs.awaitState(DGState.CLOSED);
-                                SpigotMain.sessions.remove(playerName);
+                                });
+                            }
+                            dgs.awaitState(DGState.CLOSED);
+                            SpigotMain.sessions.remove(playerName);
+                            Bukkit.getScheduler().runTask(SpigotMain.instance, () -> {
                                 player.sendMessage("连接断开辽...可能是因为强度设置低于服主设置的阈值，或者是网络问题？");
                             });
-                            return dgs;
                         });
-                        if (session.getState() == DGState.WAITING_SERVER) {
-                            session.awaitState(DGState.WAITING_CLIENT);
-                        }
-                        if (session.getState() != DGState.WAITING_CLIENT) {
+                        return dgs;
+                    });
+                    if (session.getState() == DGState.WAITING_SERVER) {
+                        session.awaitState(DGState.WAITING_CLIENT);
+                    }
+                    if (session.getState() != DGState.WAITING_CLIENT) {
+                        Bukkit.getScheduler().runTask(SpigotMain.instance, () -> {
                             player.sendMessage("连接失败，可能是已经连接过设备，或者网络错误？");
-                            return null;
-                        }
-                        QrCode qrCode = session.getQrCode();
-                        int dist = 32 - qrCode.size / 2;
+                        });
+                        throw new RuntimeException("state error");
+                    }
+                    QrCode qrCode = session.getQrCode();
+                    return qrCode;
+                };
+                future = singleExec.submit(task);
+                QrCode qrCode = (QrCode) future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                int dist = 32 - qrCode.size / 2;
+
+                Bukkit.getScheduler().runTask(SpigotMain.instance, () -> {
+                    try {
                         ItemStack map = new ItemStack(ReflectUtils.mapMaterial, 1);
                         MapMeta meta = (MapMeta) map.getItemMeta();
                         MapView view = Bukkit.createMap(Bukkit.getWorlds().get(0));
@@ -102,27 +114,24 @@ public class MapCommand {
                         map.setItemMeta(meta);
                         ReflectUtils.processMapView2(map, view);
 
-                        // Give map to player on main thread
-                        Bukkit.getScheduler().callSyncMethod(SpigotMain.instance, () -> {
-                            player.getInventory().setItemInHand(map);
-                            return null;
-                        });
+                        player.getInventory().setItemInHand(map);
+                    } catch (Exception ex) {
+                        player.sendMessage("二维码生成失败，请联系管理员。");
                     } finally {
-                        // Ensure player is removed from processing set
                         processingPlayers.remove(playerName);
                     }
-                    return null;
-                };
-                ExecutorService singleExec = Executors.newSingleThreadExecutor();
-                future = singleExec.submit(task);
-                future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                });
                 singleExec.shutdown();
             } catch (TimeoutException e) {
-                player.sendMessage("二维码生成超时，请稍后重试。");
-                processingPlayers.remove(playerName);
+                Bukkit.getScheduler().runTask(SpigotMain.instance, () -> {
+                    player.sendMessage("二维码生成超时，请稍后重试。");
+                    processingPlayers.remove(playerName);
+                });
             } catch (Exception e) {
-                player.sendMessage("二维码生成失败，请联系管理员。");
-                processingPlayers.remove(playerName);
+                Bukkit.getScheduler().runTask(SpigotMain.instance, () -> {
+                    player.sendMessage("二维码生成失败，请联系管理员。");
+                    processingPlayers.remove(playerName);
+                });
             }
         });
     }
